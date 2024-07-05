@@ -19,11 +19,11 @@ public class ObstacleEditor : EditorWindow
                     GUILayout.BeginHorizontal();
                     for(int j = 0; j < 10; j++) {
                         if(GUILayout.Button("" + i + "," + j)) {
-                            if(ObstacleManager.instance.data.obstacleBools[10*j + i]) {
-                                ObstacleManager.instance.data.obstacleBools[j*10 + i] = false;
+                            if(ObstacleManager.instance.data.obstacleBools[10*i + j]) {
+                                ObstacleManager.instance.data.obstacleBools[i*10 + j] = false;
                                 ObstacleManager.instance.updateObstacles();
                             } else {
-                                ObstacleManager.instance.data.obstacleBools[j*10 + i] = true;
+                                ObstacleManager.instance.data.obstacleBools[i*10 + j] = true;
                                 ObstacleManager.instance.updateObstacles();
                             }
                         }

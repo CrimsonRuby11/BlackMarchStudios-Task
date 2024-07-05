@@ -31,14 +31,16 @@ public class ObstacleManager : MonoBehaviour
             for(int j = 0; j < 10; j++) {
                 if(data.obstacleBools[k]) {
                     // instantiate obstacle
-                    data.obstacles[(j, i)] = Instantiate(
+                    data.obstacles[(i, j)] = Instantiate(
                         obstaclePf, 
-                        GridController.instance.grid.CellToWorld(new Vector3Int(j, 0, i)), 
+                        GridController.instance.grid.CellToWorld(new Vector3Int(i, 0, j)), 
                         Quaternion.identity, 
                         obstacleParent
                     );
-                }
 
+                    GridController.instance.setObstacle(i, j, true);
+                }
+                
                 k++;
             }
         }
@@ -48,18 +50,21 @@ public class ObstacleManager : MonoBehaviour
         int k = 0;
         for(int i = 0; i < 10; i++) {
             for(int j = 0; j < 10; j++) {
-                if(data.obstacleBools[k] && !data.obstacles.ContainsKey((j, i))) {
+                if(data.obstacleBools[k] && !data.obstacles.ContainsKey((i, j))) {
                     // instantiate obstacle
-                    data.obstacles[(j, i)] = Instantiate(
+                    data.obstacles[(i, j)] = Instantiate(
                         obstaclePf, 
-                        GridController.instance.grid.CellToWorld(new Vector3Int(j, 0, i)), 
+                        GridController.instance.grid.CellToWorld(new Vector3Int(i, 0, j)), 
                         Quaternion.identity, 
                         obstacleParent
                     );
+
+                    GridController.instance.setObstacle(i, j, true);
                 }
-                else if(!data.obstacleBools[k] && data.obstacles.ContainsKey((j, i))){
-                    Destroy(data.obstacles[(j, i)]);
-                    data.obstacles.Remove((j, i));
+                else if(!data.obstacleBools[k] && data.obstacles.ContainsKey((i, j))){
+                    Destroy(data.obstacles[(i, j)]);
+                    data.obstacles.Remove((i, j));
+                    GridController.instance.setObstacle(i, j, false);
                 }
                 k++;
             }
@@ -69,7 +74,7 @@ public class ObstacleManager : MonoBehaviour
     public void resetObstacles() {
         for(int i = 0; i < 10; i++) {
             for(int j = 0; j < 10; j++) {
-                data.obstacleBools[10*j + i] = false;
+                data.obstacleBools[10*i + j] = false;
             }
         }
 
