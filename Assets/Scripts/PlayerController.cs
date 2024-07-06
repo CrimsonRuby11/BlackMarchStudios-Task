@@ -19,7 +19,7 @@ public class PlayerController : MonoBehaviour
         if(canMove) {
             GridController.instance.resetCubes();
             path.Clear();
-            GridController.instance.pathFind(GridController.instance.getPlayerCube(), endX, endY, path);
+            GridController.instance.pathFind(GridController.instance.getCube(gridX, gridY), endX, endY, path);
 
             // Start moving
             StartCoroutine(move());

@@ -49,10 +49,6 @@ public class GridController : MonoBehaviour
         initiateCubes();
     }
 
-    void Start() {
-
-    }
-
     void Update() {
         mousePos = Input.mousePosition;
         mousePos.z = cam.nearClipPlane;
@@ -103,7 +99,6 @@ public class GridController : MonoBehaviour
         float minDist = 100;
         CubeController tempCube = null;
 
-        // left
         if(x-1 > -1 && canVisit(x-1, y, -1)) {
             if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x-1, 0, y)) < minDist) {
                 minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x-1, 0, y));
@@ -140,9 +135,9 @@ public class GridController : MonoBehaviour
 
     }
 
-    public CubeController getPlayerCube() {
-        cubes[playerC.gridX, playerC.gridY].visited = 0;
-        return cubes[playerC.gridX, playerC.gridY];
+    public CubeController getCube(int x, int y) {
+        cubes[x, y].visited = 0;
+        return cubes[x, y];
     }
 
     public void resetCubes() {
