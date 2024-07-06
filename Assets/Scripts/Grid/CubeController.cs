@@ -15,11 +15,8 @@ public class CubeController : MonoBehaviour
         gridPosition = new Vector3Int(x, 0, y);
     }
 
-    public Vector3Int getGrid() {
-        return gridPosition;
-    }
-
     public void OnMouseDown() {
+        // On mouse click, call pathFind on the player
         GridController.instance.playerC.pathFind(gridPosition.x, gridPosition.z);
     }
 }

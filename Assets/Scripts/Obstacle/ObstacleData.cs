@@ -7,5 +7,4 @@ public class ObstacleData : ScriptableObject
 {
     public List<bool> obstacleBools;
     public Dictionary<(int a, int b), GameObject> obstacles;
-
 }

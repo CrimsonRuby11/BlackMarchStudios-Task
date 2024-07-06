@@ -4,14 +4,17 @@ using UnityEngine;
 
 public class ObstacleManager : MonoBehaviour
 {
+    // Singleton
     public static ObstacleManager instance;
 
+    // Reference to data
     public ObstacleData data;
 
     public GameObject obstaclePf;
     public Transform obstacleParent;
 
     void Awake() {
+        // Singleton initialization
         if(instance == null) {
             instance = this;
         } else if(instance != this) {
@@ -20,8 +23,10 @@ public class ObstacleManager : MonoBehaviour
     }
 
     void Start() {
+        // Initialize variables
         data.obstacles = new Dictionary<(int a, int b), GameObject>();
 
+        // On game start, create obstacles according to list
         initiateObstacles();
     }
 
@@ -38,6 +43,7 @@ public class ObstacleManager : MonoBehaviour
                         obstacleParent
                     );
 
+                    // Update obstacleBools
                     GridController.instance.setObstacle(i, j, true);
                 }
                 
@@ -51,7 +57,7 @@ public class ObstacleManager : MonoBehaviour
         for(int i = 0; i < 10; i++) {
             for(int j = 0; j < 10; j++) {
                 if(data.obstacleBools[k] && !data.obstacles.ContainsKey((i, j))) {
-                    // instantiate obstacle
+                    // if obstacleBool is true but obstacle not present at (i, j) create an obstacle in that position
                     data.obstacles[(i, j)] = Instantiate(
                         obstaclePf, 
                         GridController.instance.grid.CellToWorld(new Vector3Int(i, 0, j)), 
@@ -59,11 +65,16 @@ public class ObstacleManager : MonoBehaviour
                         obstacleParent
                     );
 
+                    // Update obstacle bools
                     GridController.instance.setObstacle(i, j, true);
                 }
                 else if(!data.obstacleBools[k] && data.obstacles.ContainsKey((i, j))){
+                    // If obstacleBool is false but obstacle is present at (i, j) delete that obstacle
                     Destroy(data.obstacles[(i, j)]);
+                    // remove from list
                     data.obstacles.Remove((i, j));
+
+                    // update obstacle bools
                     GridController.instance.setObstacle(i, j, false);
                 }
                 k++;

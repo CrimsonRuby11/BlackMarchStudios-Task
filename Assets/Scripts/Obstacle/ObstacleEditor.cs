@@ -20,11 +20,17 @@ public class ObstacleEditor : EditorWindow
                     for(int j = 0; j < 10; j++) {
                         if(GUILayout.Button("" + i + "," + j)) {
                             if(ObstacleManager.instance.data.obstacleBools[10*i + j]) {
+
+                                // If obstacle at (i, j), remove obstacle from bools list and update list
                                 ObstacleManager.instance.data.obstacleBools[i*10 + j] = false;
                                 ObstacleManager.instance.updateObstacles();
+
                             } else {
+
+                                // Else, set obstacle bool to true and update list
                                 ObstacleManager.instance.data.obstacleBools[i*10 + j] = true;
                                 ObstacleManager.instance.updateObstacles();
+
                             }
                         }
                     }
@@ -39,6 +45,8 @@ public class ObstacleEditor : EditorWindow
         }
 
         GUILayout.Space(20);
+
+        
         if (GUILayout.Button("Reset Obstacles")) {
             ObstacleManager.instance.resetObstacles();
         }
