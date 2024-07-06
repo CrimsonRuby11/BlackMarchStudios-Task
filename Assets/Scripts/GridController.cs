@@ -74,6 +74,7 @@ public class GridController : MonoBehaviour
             for(int j = 0; j < 10; j++) {
                 GameObject newcube = Instantiate(cubePF, grid.CellToWorld(new Vector3Int(i, 0, j)), Quaternion.identity, cubeParent);
                 newcube.GetComponent<CubeController>().setGrid(i, j);
+                newcube.gameObject.name = "Cube " + i + ", " + j;
                 cubes[i, j] = newcube.GetComponent<CubeController>();
             }
         }
@@ -83,129 +84,71 @@ public class GridController : MonoBehaviour
         cubes[x, y].isObstacle = b;
     }
 
-    // Pathfinding
-
-    public enum Dir {
-        top,
-        right,
-        bottom,
-        left,
+    bool canVisit(int x, int y, int step) {
+        return cubes[x, y] && !cubes[x, y].isObstacle && cubes[x, y].visited == step;
     }
 
-    int startX;
-    int startY;
+    public List<CubeController> pathFind(CubeController currentCube, int endX, int endY, List<CubeController> list) {
 
-    void setup() {
-        startX = playerC.gridX;
-        startY = playerC.gridY;
-
-        Debug.Log("Start Pathfinding");
-
-        cubes[startX, startY].visited = 0;
-    }
-
-    bool testDir(int x, int y, int step, Dir dir) {
-        switch(dir) {
-            case Dir.left:
-                return x-1 > -1 && canVisit(x-1, y, step);
-            case Dir.right:
-                return x+1 < 10 && canVisit(x+1, y, step);
-            case Dir.top:
-                return y-1 > -1 && canVisit(x, y-1, step);
-            case Dir.bottom:
-                return y+1 < 10 && canVisit(x, y+1, step);
+        if(currentCube.gridPosition.x == endX && currentCube.gridPosition.z == endY) {
+            return list;
         }
 
-        return false;
-    }
+        // Check all directions of currentCube for next visit
+        int t = currentCube.visited;
+        int x = currentCube.gridPosition.x;
+        int y = currentCube.gridPosition.z;
 
-    public bool canVisit(int x, int y, int step) {
-        return cubes[x, y] && cubes[x, y].visited == step;
-    }
+        List<float> tempList = new List<float>();
+        float minDist = 100;
+        CubeController tempCube = null;
 
-    void setVisit(int x, int y, int step) {
-        if(cubes[x, y]) {
-            cubes[x, y].visited = step;
-        }
-    }
-
-    public void setDistance() {
-        setup();
-
-        for(int step = 1; step < 100; step++) {
-            foreach(CubeController c in cubes) {
-                if(c && c.visited == step-1) {
-                    TestAllDir(c.gridPosition.x, c.gridPosition.z, step);
-                }
+        // left
+        if(x-1 > -1 && canVisit(x-1, y, -1)) {
+            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x-1, 0, y)) < minDist) {
+                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x-1, 0, y));
+                tempCube = cubes[x-1, y];
             }
         }
-    }
-
-    void TestAllDir(int x,int y, int step) {
-        if(testDir(x, y, -1, Dir.top)) {
-            setVisit(x, y+1, step);
-        }
-        if(testDir(x, y, -1, Dir.right)) {
-            setVisit(x+1, y, step);
-        }
-        if(testDir(x, y, -1, Dir.bottom)) {
-            setVisit(x, y-1, step);
-        }
-        if(testDir(x, y, -1, Dir.left)) {
-            setVisit(x-1, y, step);
-        }
-    }
-
-    public void setPath(int endX, int endY) {
-        int step;
-
-        int x = endX;
-        int y = endY;
-
-        List<CubeController> tempList = new List<CubeController>();
-        path.Clear();
-
-        if(cubes[endX, endY] && cubes[endX, endY].visited > 0) {
-            path.Add(cubes[x, y]);
-            step = cubes[x, y].visited - 1;
-        } else {
-            return;
-        }
-
-        for(int i = step; i > -1; i--) {
-            if(testDir(x, y, step, Dir.top)) {
-                tempList.Add(cubes[x, y+1]);
-            }
-            if(testDir(x, y, step, Dir.bottom)) {
-                tempList.Add(cubes[x, y-1]);
-            }
-            if(testDir(x, y, step, Dir.left)) {
-                tempList.Add(cubes[x-1, y]);
-            }
-            if(testDir(x, y, step, Dir.right)) {
-                tempList.Add(cubes[x+1, y]);
+        if(x+1 < 10 && canVisit(x+1, y, -1)) {
+            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x+1, 0, y)) < minDist) {
+                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x+1, 0, y));
+                tempCube = cubes[x+1, y];
             }
         }
+        if(y-1 > -1 && canVisit(x, y-1, -1)) {
+            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y-1)) < minDist) {
+                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y-1));
+                tempCube = cubes[x, y-1];
+            }
+        }
+        if(y+1 < 10 && canVisit(x, y+1, -1)) {
+            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y+1)) < minDist) {
+                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y+1));
+                tempCube = cubes[x, y+1];
+            }
+        }
+        if(tempCube == null){
+            Debug.Log("Could not reach destination.");
+            return new List<CubeController>();
+        }
 
-        CubeController tempObj = getClosest(cubes[endX, endY].transform.position, tempList);
-        path.Add(tempObj);
-        x = tempObj.gridPosition.x;
-        y = tempObj.gridPosition.z;
-        tempList.Clear();
+        tempCube.visited = t+1;
+        list.Add(tempCube);
+
+        return pathFind(tempCube, endX, endY, list);
 
     }
 
-    CubeController getClosest(Vector3 targetLocation, List<CubeController> list) {
-        float minDist = 500;
-        int index = 0;
-        for(int i = 0; i < list.Count; i++) {
-            if(Vector3.Distance(targetLocation, list[i].transform.position) < minDist) {
-                minDist = Vector3.Distance(targetLocation, list[i].transform.position);
-                index = i;
-            }
-        }
+    public CubeController getPlayerCube() {
+        cubes[playerC.gridX, playerC.gridY].visited = 0;
+        return cubes[playerC.gridX, playerC.gridY];
+    }
 
-        return list[index];
+    public void resetCubes() {
+        foreach(CubeController c in cubes) {
+            c.visited = -1;
+        }
     }
 
 }

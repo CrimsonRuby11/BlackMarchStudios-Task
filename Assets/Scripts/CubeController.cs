@@ -2,9 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class CubeController : MonoBehaviour
 {
+    [SerializeField]
     public Vector3Int gridPosition;
+
     public int visited = -1;
     public bool isObstacle = false;
 
@@ -17,9 +20,6 @@ public class CubeController : MonoBehaviour
     }
 
     public void OnMouseDown() {
-        GridController.instance.setDistance();
-        GridController.instance.setPath(gridPosition.x, gridPosition.z);
-
-        GridController.instance.playerC.startMovement();
+        GridController.instance.playerC.pathFind(gridPosition.x, gridPosition.z);
     }
 }

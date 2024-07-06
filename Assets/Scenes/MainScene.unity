@@ -1355,7 +1355,7 @@ Transform:
   m_GameObject: {fileID: 1766350647}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4, y: 0, z: 4}
+  m_LocalPosition: {x: 2, y: 0, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1376,6 +1376,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gridX: 0
   gridY: 0
+  canMove: 1
+  path: []
 --- !u!1 &1786594865
 GameObject:
   m_ObjectHideFlags: 0
@@ -1442,6 +1444,7 @@ MonoBehaviour:
   debugSphere: {fileID: 1562907252}
   gridPosText: {fileID: 17578177}
   playerC: {fileID: 1766350649}
+  path: []
 --- !u!1 &1917147606
 GameObject:
   m_ObjectHideFlags: 0

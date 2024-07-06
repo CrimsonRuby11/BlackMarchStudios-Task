@@ -6,21 +6,38 @@ public class PlayerController : MonoBehaviour
 {
     public int gridX;
     public int gridY;
+    public bool canMove = true;
+    public List<CubeController> path;
 
     void Start() {
         gridX = GridController.instance.grid.WorldToCell(transform.position).x;
         gridY = GridController.instance.grid.WorldToCell(transform.position).z;
+        path = new List<CubeController>();
     }
 
-    public enum Dir {
-        up = 0,
-        down = 1,
-        left = 2,
-        right = 3,
+    public void pathFind(int endX, int endY) {
+        if(canMove) {
+            GridController.instance.resetCubes();
+            path.Clear();
+            GridController.instance.pathFind(GridController.instance.getPlayerCube(), endX, endY, path);
+
+            // Start moving
+            StartCoroutine(move());
+        }
     }
 
-    public void startMovement() {
-        // List of distances
-        List<float> distances = new List<float>();
+    IEnumerator move() {
+
+        canMove = false;
+
+        while(path.Count > 0) {
+            transform.position = new Vector3(path[0].gridPosition.x, 0, path[0].gridPosition.z);
+            path.RemoveAt(0);
+            gridX = GridController.instance.grid.WorldToCell(transform.position).x;
+            gridY = GridController.instance.grid.WorldToCell(transform.position).z;
+            yield return new WaitForSeconds(.5f);
+        }
+
+        canMove = true;
     }
 }
