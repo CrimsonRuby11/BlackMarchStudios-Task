@@ -25,10 +25,10 @@ public class PlayerController : MonoBehaviour
             path.Clear();
 
             // Use pathFind and retrieve path
-            GridController.instance.pathFind(GridController.instance.getCube(gridX, gridY), endX, endY, path);
+            path = GridController.instance.pathFind(GridController.instance.getCube(gridX, gridY), endX, endY);
 
             // Start moving
-            StartCoroutine(move());
+            // StartCoroutine(move());
         }
         
     }

@@ -28,8 +28,8 @@ public class GridController : MonoBehaviour
     public PlayerController playerC;
     [SerializeField]
     private CubeController[,] cubes;
-    [SerializeField]
-    private List<CubeController> path;
+    // [SerializeField]
+    // private List<CubeController> path;
     [SerializeField]
     private GameObject planeObject;
 
@@ -104,65 +104,66 @@ public class GridController : MonoBehaviour
         return cubes[x, y] && !cubes[x, y].isObstacle && cubes[x, y].visited == step;
     }
 
-    public List<CubeController> pathFind(CubeController currentCube, int endX, int endY, List<CubeController> list) {
+    public float calculateCost(CubeController c, CubeController startC, CubeController endC) {
+        float fCost, gCost, hCost;
+        gCost = Mathf.Abs(c.gridPosition.x - startC.gridPosition.x) + Mathf.Abs(c.gridPosition.z - startC.gridPosition.z);
+        hCost = Mathf.Abs(c.gridPosition.x - endC.gridPosition.x) + Mathf.Abs(c.gridPosition.z - endC.gridPosition.z);
+        fCost = gCost + hCost;
+        c.setCosts(gCost, hCost, fCost);
 
-        // RECURSIVE FUNCTION
-        // If end position is reached, return list
-        if(currentCube.gridPosition.x == endX && currentCube.gridPosition.z == endY) {
-            return list;
-        }
+        return fCost;
+    }
 
-        // Else, 
-        // Check all directions of currentCube for next visit
-        int t = currentCube.visited;
-        int x = currentCube.gridPosition.x;
-        int y = currentCube.gridPosition.z;
+    public List<CubeController> pathFind(CubeController startingCube, int endX, int endY) {
 
-        List<float> tempList = new List<float>();
-        float minDist = 100;
-        CubeController tempCube = null;
+        CubeController currentCube = startingCube;
+        CubeController endCube = cubes[endX, endY];
+        CubeController bestNext;
 
-        // Left
-        if(x-1 > -1 && canVisit(x-1, y, -1)) {
-            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x-1, 0, y)) < minDist) {
-                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x-1, 0, y));
-                tempCube = cubes[x-1, y];
+        List<CubeController> path = new List<CubeController>();
+
+        while(currentCube != cubes[endX, endY]) {
+
+            // Calculate fCost of neighbouring cubes
+            int x = currentCube.gridPosition.x;
+            int y = currentCube.gridPosition.z;
+            float k = 0;
+
+            List<CubeController> neighbours = new List<CubeController>();
+
+            // initialize bestNext to left
+            // Left
+            if(x-1 > -1 && cubes[x-1, y] && !cubes[x-1,y].isObstacle) {
+                neighbours.Add(cubes[x-1, y]);
             }
-        }
-        // Right
-        if(x+1 < 10 && canVisit(x+1, y, -1)) {
-            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x+1, 0, y)) < minDist) {
-                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x+1, 0, y));
-                tempCube = cubes[x+1, y];
+            // Right
+            if(x+1 < 10 && cubes[x+1, y] && !cubes[x+1,y].isObstacle) {
+                neighbours.Add(cubes[x+1, y]);
             }
-        }
-        // Bottom
-        if(y-1 > -1 && canVisit(x, y-1, -1)) {
-            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y-1)) < minDist) {
-                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y-1));
-                tempCube = cubes[x, y-1];
+            // Bottom
+            if(y-1 > -1 && cubes[x, y-1] && !cubes[x,y-1].isObstacle) {
+                neighbours.Add(cubes[x, y-1]);
             }
-        }
-        // Top
-        if(y+1 < 10 && canVisit(x, y+1, -1)) {
-            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y+1)) < minDist) {
-                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y+1));
-                tempCube = cubes[x, y+1];
+            // Left
+            if(y+1 < 10 && cubes[x, y+1] && !cubes[x,y+1].isObstacle) {
+                neighbours.Add(cubes[x, y+1]);
             }
-        }
-        // tempCube consists of the cube that is closest to the final destination.
-        // In case destination is not reachable
-        if(tempCube == null){
-            Debug.Log("Could not reach destination.");
-            return new List<CubeController>();
+
+            bestNext = neighbours[0];
+            k = neighbours[0].fCost;
+            foreach(CubeController c in neighbours) {
+                calculateCost(c, startingCube, endCube);
+                if(c.fCost < k) {
+                    bestNext = c;
+                    k = c.fCost;
+                }
+            }
+
+            path.Add(bestNext);
+            currentCube = bestNext;
         }
 
-        // set the next cube's visited to a higher value than current one, and add to the list
-        tempCube.visited = t+1;
-        list.Add(tempCube);
-
-        // Using recursive function logic, pass the tempCube as the starting position for next loop.
-        return pathFind(tempCube, endX, endY, list);
+        return path;
 
     }
 
