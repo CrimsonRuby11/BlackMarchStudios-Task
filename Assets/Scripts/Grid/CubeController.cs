@@ -8,7 +8,7 @@ public class CubeController : MonoBehaviour
     [SerializeField]
     public Vector3Int gridPosition;
 
-    public int visited = -1;
+    public bool visited = false;
     public bool isObstacle = false;
 
     [SerializeField]
@@ -16,7 +16,7 @@ public class CubeController : MonoBehaviour
     [SerializeField]
     private float gCost;
 
-    public float fCost {get; private set;}
+    public float fCost;
 
     private CubeController previousCube;
 

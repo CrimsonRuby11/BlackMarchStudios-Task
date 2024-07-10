@@ -99,9 +99,9 @@ public class GridController : MonoBehaviour
         cubes[x, y].isObstacle = b;
     }
 
-    bool canVisit(int x, int y, int step) {
-        // if cube exists, and cube is not an obstacle, and cube's visit value is step.
-        return cubes[x, y] && !cubes[x, y].isObstacle && cubes[x, y].visited == step;
+    bool canVisit(int x, int y) {
+        // if cube exists, and cube is not an obstacle, and cube's not visited.
+        return cubes[x, y] && !cubes[x, y].isObstacle && !cubes[x, y].visited;
     }
 
     public float calculateCost(CubeController c, CubeController startC, CubeController endC) {
@@ -127,39 +127,45 @@ public class GridController : MonoBehaviour
             // Calculate fCost of neighbouring cubes
             int x = currentCube.gridPosition.x;
             int y = currentCube.gridPosition.z;
-            float k = 0;
+            currentCube.visited = true;
+            float k;
 
             List<CubeController> neighbours = new List<CubeController>();
 
-            // initialize bestNext to left
             // Left
-            if(x-1 > -1 && cubes[x-1, y] && !cubes[x-1,y].isObstacle) {
+            if(x-1 > -1 && canVisit(x-1, y)) {
                 neighbours.Add(cubes[x-1, y]);
             }
             // Right
-            if(x+1 < 10 && cubes[x+1, y] && !cubes[x+1,y].isObstacle) {
+            if(x+1 < 10 && canVisit(x+1, y)) {
                 neighbours.Add(cubes[x+1, y]);
             }
             // Bottom
-            if(y-1 > -1 && cubes[x, y-1] && !cubes[x,y-1].isObstacle) {
+            if(y-1 > -1 && canVisit(x, y-1)) {
                 neighbours.Add(cubes[x, y-1]);
             }
-            // Left
-            if(y+1 < 10 && cubes[x, y+1] && !cubes[x,y+1].isObstacle) {
+            // Top
+            if(y+1 < 10 && canVisit(x, y+1)) {
                 neighbours.Add(cubes[x, y+1]);
             }
 
+            if(neighbours.Count <= 0) {
+                Debug.Log("CANNOT FIND PATH");
+                return path;
+            }
+
             bestNext = neighbours[0];
-            k = neighbours[0].fCost;
+            k = calculateCost(bestNext, startingCube, endCube);
             foreach(CubeController c in neighbours) {
                 calculateCost(c, startingCube, endCube);
                 if(c.fCost < k) {
                     bestNext = c;
-                    k = c.fCost;
+                    k = bestNext.fCost;
                 }
             }
 
             path.Add(bestNext);
+            // Debug.Log("added: " + bestNext.gridPosition.x + " " + bestNext.gridPosition.z);
             currentCube = bestNext;
         }
 
@@ -168,16 +174,16 @@ public class GridController : MonoBehaviour
     }
 
     public CubeController getCube(int x, int y) {
-        // resets starting position.
-        // Move visited = 0 to a different place as this is illogical.
-        cubes[x, y].visited = 0;
+        // // Move visited = true to a different place as this is illogical.
+        // cubes[x, y].visited = true;
         return cubes[x, y];
     }
 
     public void resetCubes() {
         // Reset every cube to not visited.
         foreach(CubeController c in cubes) {
-            c.visited = -1;
+            c.visited = false;
+            c.setCosts(0, 0, 0);
         }
     }
 
