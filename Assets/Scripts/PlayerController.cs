@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour
             path = GridController.instance.pathFind(GridController.instance.getCube(gridX, gridY), endX, endY);
 
             // Start moving
-            // StartCoroutine(move());
+            StartCoroutine(move());
         }
         
     }

@@ -11,14 +11,11 @@ public class CubeController : MonoBehaviour
     public bool visited = false;
     public bool isObstacle = false;
 
-    [SerializeField]
-    private float hCost;
-    [SerializeField]
-    private float gCost;
-
+    public float gCost;
+    public float hCost;
     public float fCost;
 
-    private CubeController previousCube;
+    public CubeController previousCube;
 
     public void setGrid(int x, int y) {
         gridPosition = new Vector3Int(x, 0, y);
@@ -29,9 +26,7 @@ public class CubeController : MonoBehaviour
         GridController.instance.playerC.pathFind(gridPosition.x, gridPosition.z);
     }
 
-    public void setCosts(float g, float h, float f) {
-        gCost = g;
-        hCost = h;
-        fCost = f;
+    public void calculateFCost() {
+        fCost = gCost + hCost;
     }
 }
