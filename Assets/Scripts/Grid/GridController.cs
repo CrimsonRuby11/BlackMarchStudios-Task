@@ -28,8 +28,8 @@ public class GridController : MonoBehaviour
     public PlayerController playerC;
     [SerializeField]
     private CubeController[,] cubes;
-    [SerializeField]
-    private List<CubeController> path;
+    // [SerializeField]
+    // private List<CubeController> path;
     [SerializeField]
     private GameObject planeObject;
 
@@ -99,84 +99,150 @@ public class GridController : MonoBehaviour
         cubes[x, y].isObstacle = b;
     }
 
-    bool canVisit(int x, int y, int step) {
-        // if cube exists, and cube is not an obstacle, and cube's visit value is step.
-        return cubes[x, y] && !cubes[x, y].isObstacle && cubes[x, y].visited == step;
+    bool canVisit(int x, int y) {
+        // if cube exists, and cube is not an obstacle
+        return cubes[x, y] && !cubes[x, y].isObstacle;
     }
 
-    public List<CubeController> pathFind(CubeController currentCube, int endX, int endY, List<CubeController> list) {
+    public List<CubeController> pathFind(CubeController startingCube, int endX, int endY) {
 
-        // RECURSIVE FUNCTION
-        // If end position is reached, return list
-        if(currentCube.gridPosition.x == endX && currentCube.gridPosition.z == endY) {
-            return list;
+        // A* PATHFINDING
+        // cache endPoint
+        CubeController endCube = cubes[endX, endY];
+
+        // Two lists to keep track of visited cubes and unvisited ones
+        List<CubeController> openList = new List<CubeController>() {startingCube};
+        List<CubeController> closedList = new List<CubeController>();
+
+        // Reset all cubes to not visited
+        for(int x = 0; x < 10; x++) {
+            for(int y = 0; y < 10; y++) {
+                cubes[x, y].gCost = int.MaxValue;
+                cubes[x, y].calculateFCost();
+                cubes[x, y].previousCube = null;
+            }
         }
 
-        // Else, 
-        // Check all directions of currentCube for next visit
-        int t = currentCube.visited;
+        // Initialize starting position with gCost = 0, hCost according to endCube
+        startingCube.gCost = 0;
+        startingCube.hCost = calculateDistanceCost(startingCube, endCube);
+        startingCube.calculateFCost();
+
+        // If openList contains nodes
+        while(openList.Count > 0) {
+
+            // Get element with lowest fCost and check if its the end point (if reached destination)
+            CubeController currentCube = getLowestF(openList);
+            if(currentCube == endCube) {
+                // If reached, return the final path
+                return calculatePath(endCube);
+            }
+
+            // Mark current cube as visited, remove from open list and add to closed
+            openList.Remove(currentCube);
+            closedList.Add(currentCube);
+
+            // For each neighbour of currentCube
+            foreach(CubeController c in getNeighbours(currentCube)) {
+                // Ignore if neighbour already visited
+                if(closedList.Contains(c)) continue;
+
+                // Get gCost according to currentCube's gCost and new distance
+                float newG = currentCube.gCost + calculateDistanceCost(currentCube, c);
+
+                // Get the neighbour that we didnt already visit. those whose gCost is more than that of the currentCube
+                if(newG < c.gCost) {
+
+                    // Set currentCube as parent to new cube
+                    c.previousCube = currentCube;
+
+                    // Update gCost, hCost, and fCost
+                    c.gCost = newG;
+                    c.hCost = calculateDistanceCost(c, endCube);
+                    c.calculateFCost();
+                }
+
+                // If neighbour wasn't already searched by other cubes, add to openList
+                if(!openList.Contains(c)) {
+                    openList.Add(c);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private List<CubeController> getNeighbours(CubeController currentCube) {
+        // Initiate list
+        List<CubeController> neighbours = new List<CubeController>();
+
+        // Cache position
         int x = currentCube.gridPosition.x;
         int y = currentCube.gridPosition.z;
 
-        List<float> tempList = new List<float>();
-        float minDist = 100;
-        CubeController tempCube = null;
-
         // Left
-        if(x-1 > -1 && canVisit(x-1, y, -1)) {
-            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x-1, 0, y)) < minDist) {
-                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x-1, 0, y));
-                tempCube = cubes[x-1, y];
-            }
-        }
+        if(x-1 > -1 && canVisit(x-1, y)) neighbours.Add(cubes[x-1, y]);
         // Right
-        if(x+1 < 10 && canVisit(x+1, y, -1)) {
-            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x+1, 0, y)) < minDist) {
-                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x+1, 0, y));
-                tempCube = cubes[x+1, y];
-            }
-        }
+        if(x+1 < 10 && canVisit(x+1, y)) neighbours.Add(cubes[x+1, y]);
         // Bottom
-        if(y-1 > -1 && canVisit(x, y-1, -1)) {
-            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y-1)) < minDist) {
-                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y-1));
-                tempCube = cubes[x, y-1];
-            }
-        }
+        if(y-1 > -1 && canVisit(x, y-1)) neighbours.Add(cubes[x, y-1]);
         // Top
-        if(y+1 < 10 && canVisit(x, y+1, -1)) {
-            if(Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y+1)) < minDist) {
-                minDist = Vector3.Distance(new Vector3(endX, 0, endY), new Vector3(x, 0, y+1));
-                tempCube = cubes[x, y+1];
+        if(y+1 < 10 && canVisit(x, y+1)) neighbours.Add(cubes[x, y+1]);
+
+        return neighbours;
+    }
+
+    private List<CubeController> calculatePath(CubeController endCube) {
+        // Initiate Path
+        List<CubeController> path = new List<CubeController>() {endCube};
+
+        // Start from the endCube
+        CubeController currentCube = endCube;
+
+        // If currentCube's parent exists, add to path and set currentCube to parent
+        while(currentCube.previousCube != null) {
+            path.Add(currentCube.previousCube);
+            currentCube = currentCube.previousCube;
+        }
+
+        // Reverse the path and return
+        path.Reverse();
+        return path;
+    }
+
+    private CubeController getLowestF(List<CubeController> list) {
+        CubeController lowestF = list[0];
+        foreach(CubeController c in list) {
+            if(c.fCost < lowestF.fCost) {
+                lowestF = c;
             }
         }
-        // tempCube consists of the cube that is closest to the final destination.
-        // In case destination is not reachable
-        if(tempCube == null){
-            Debug.Log("Could not reach destination.");
-            return new List<CubeController>();
-        }
 
-        // set the next cube's visited to a higher value than current one, and add to the list
-        tempCube.visited = t+1;
-        list.Add(tempCube);
+        return lowestF;
+    }
 
-        // Using recursive function logic, pass the tempCube as the starting position for next loop.
-        return pathFind(tempCube, endX, endY, list);
+    private int calculateDistanceCost(CubeController a, CubeController b) {
+        // calculate linear distances along x and y
+        int x = Mathf.Abs(a.gridPosition.x - b.gridPosition.x);
+        int y = Mathf.Abs(a.gridPosition.z - b.gridPosition.z);
 
+        // Calculate diagonal distances
+        int remaining = Mathf.Abs(x - y);
+
+        // Return total distance
+        return 14*Mathf.Min(x, y) + 10*remaining;
     }
 
     public CubeController getCube(int x, int y) {
-        // resets starting position.
-        // Move visited = 0 to a different place as this is illogical.
-        cubes[x, y].visited = 0;
+        // // Move visited = true to a different place as this is illogical.
+        // cubes[x, y].visited = true;
         return cubes[x, y];
     }
 
     public void resetCubes() {
         // Reset every cube to not visited.
         foreach(CubeController c in cubes) {
-            c.visited = -1;
+            c.visited = false;
         }
     }
 

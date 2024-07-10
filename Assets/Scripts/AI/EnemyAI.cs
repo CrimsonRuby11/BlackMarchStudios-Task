@@ -20,7 +20,7 @@ public class EnemyAI : InterfaceAI
         path.Clear();
 
         // Get new path from pathFind
-        GridController.instance.pathFind(GridController.instance.getCube(startX, startY), endX, endY, path);
+        path = GridController.instance.pathFind(GridController.instance.getCube(startX, startY), endX, endY);
 
         // return path
         return path;
