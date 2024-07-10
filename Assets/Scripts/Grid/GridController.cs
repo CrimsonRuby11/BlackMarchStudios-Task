@@ -207,6 +207,8 @@ public class GridController : MonoBehaviour
 
         // Reverse the path and return
         path.Reverse();
+        // Remove position of player from list
+        path.RemoveAt(0);
         return path;
     }
 
